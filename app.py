@@ -1,8 +1,8 @@
 from flask import Flask, render_template_string, request, redirect, url_for, session, send_from_directory
 import os
 
-app = Flask(__name__)  # Corrected here
-app.secret_key = os.urandom(24)
+app = Flask(__name__)
+app.secret_key = os.urandom(24)  # Secret key for session management
 
 # Temporary storage for users (in-memory simulation for demonstration purposes)
 users = []
@@ -15,21 +15,20 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def save_user(user):
     users.append(user)
 
-# Login page with template embedded
+# Login page
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        # Handle Login
         username = request.form['username']
         password = request.form['password']
-        pic = request.files.get('userPic')  # Safely access the uploaded file
+        pic = request.files.get('userPic')
         
         if not username or not password:
             return render_template_string(index_html, message="Please enter both username and password.", message_type="error")
 
-        # Save the uploaded picture with the username
+        # Save the uploaded picture
         pic_filename = f"{username}_{pic.filename}" if pic else 'default.png'
-        if pic:  # Save only if the picture exists
+        if pic:
             pic.save(os.path.join(UPLOAD_FOLDER, pic_filename))
 
         # Simulate user login
@@ -39,27 +38,24 @@ def index():
             'pic': pic_filename
         }
 
-        # Save user (for demo purposes)
         save_user(user)
 
-        # Store session data for the user
         session['username'] = username
         session['logged_in'] = True
 
-        # Redirect to visit page
         return redirect(url_for('visit'))
     
     return render_template_string(index_html)
 
-# Visit page with template embedded
+# Visit page
 @app.route('/visit')
 def visit():
     if not session.get('logged_in'):
-        return redirect(url_for('index'))  # If not logged in, redirect to login page
+        return redirect(url_for('index'))
 
     return render_template_string(visit_html, username=session.get('username'))
 
-# Admin panel page with template embedded
+# Admin panel
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     if request.method == 'POST':
@@ -71,7 +67,7 @@ def admin():
 
     return render_template_string(admin_html)
 
-# Delete user from the list
+# Delete user
 @app.route('/delete_user/<username>')
 def delete_user(username):
     global users
@@ -83,7 +79,7 @@ def delete_user(username):
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
-# HTML templates integrated into the Flask app
+# HTML templates
 index_html = """
 <!DOCTYPE html>
 <html lang="en">
@@ -201,5 +197,5 @@ admin_html = """
 """
 
 # Running the app
-if __name__ == '__main__':  # Corrected here
+if __name__ == '__main__':
     app.run(debug=True)
