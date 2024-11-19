@@ -1,7 +1,7 @@
 from flask import Flask, render_template_string, request, redirect, url_for, session, send_from_directory
 import os
 
-app = Flask(_name_)
+app = Flask(__name__)  # Corrected here
 app.secret_key = os.urandom(24)
 
 # Temporary storage for users (in-memory simulation for demonstration purposes)
@@ -22,14 +22,15 @@ def index():
         # Handle Login
         username = request.form['username']
         password = request.form['password']
-        pic = request.files['userPic']
+        pic = request.files.get('userPic')  # Safely access the uploaded file
         
         if not username or not password:
             return render_template_string(index_html, message="Please enter both username and password.", message_type="error")
 
         # Save the uploaded picture with the username
         pic_filename = f"{username}_{pic.filename}" if pic else 'default.png'
-        pic.save(os.path.join(UPLOAD_FOLDER, pic_filename))
+        if pic:  # Save only if the picture exists
+            pic.save(os.path.join(UPLOAD_FOLDER, pic_filename))
 
         # Simulate user login
         user = {
@@ -200,5 +201,5 @@ admin_html = """
 """
 
 # Running the app
-if _name_ == '_main_':
+if __name__ == '__main__':  # Corrected here
     app.run(debug=True)
